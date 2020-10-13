@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package BrokerDemo.API;
+
+message DemoMessage
+{
+  int32 id = 1;
+  string description = 2;
+  google.protobuf.Timestamp updated = 3;
+}
