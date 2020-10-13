@@ -25,7 +25,7 @@ namespace BrokerDemo.Server
                 if (match == null)
                 {
                     database.Add(e.Message);
-                    Console.WriteLine("Added new message to database: Id: [{0}], description: {1}", e.Message.Id, e.Message.Description);
+                    Console.WriteLine("Added a new message to database: Id: [{0}], description: {1}", e.Message.Id, e.Message.Description);
                 }
                 else
                 {
@@ -36,13 +36,16 @@ namespace BrokerDemo.Server
             };
             connection.ReadFromDatabaseEvent += (o, e) =>
             {
+                Console.WriteLine("Got read from database request for ID: [{0}], with reply queue: [{1}]", e.Message.Id, e.ReplyQueue);
                 var match = database.FirstOrDefault(message => message.Id == e.Message.Id);
                 if (match == null)
+                {
+                    Console.WriteLine("No match found in database for ID: [{0}], aborting request", e.Message.Id);
                     return;
-                
+                }
                 connection.PublishRead(e.ReplyQueue, match);
-                Console.WriteLine("Message written to queue: [{0}], " +
-                                  "Id: [{1}], description: {2}", e.ReplyQueue, match.Id, match.Description);
+                Console.WriteLine("Match found, message written to queue: [{0}],\n" +
+                                  "    Id: [{1}], description: [{2}], updated: [{3}]", e.ReplyQueue, match.Id, match.Description, match.Updated);
 
             };
             
