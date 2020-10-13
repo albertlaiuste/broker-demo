@@ -1,13 +1,13 @@
 ﻿using System.Threading.Tasks;
 
-namespace Client.Broker
+namespace BrokerDemo.Client.Broker
 {
     public static class Requests
     {
-        public static Task<BrokerDemo.API.DemoMessage> RequestMessage(BrokerConnection connection, int id)
+        public static Task<API.DemoMessage> RequestMessage(BrokerConnection connection, int id)
         {
-            BrokerDemo.API.DemoMessage message = null;
-            var tcs = new TaskCompletionSource<BrokerDemo.API.DemoMessage>();
+            API.DemoMessage message = null;
+            var tcs = new TaskCompletionSource<API.DemoMessage>();
 
             BrokerConnection.MessageReceivedEventHandler handler = null;
             handler = (o, e) =>

@@ -2,9 +2,8 @@
 using  RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
-namespace Server.Broker
+namespace BrokerDemo.Server.Broker
 {
     public class BrokerConnection : IBrokerConnection
     {
@@ -43,12 +42,12 @@ namespace Server.Broker
             _connection.Close();
         }
 
-        public void PublishRead(string queueName, BrokerDemo.API.DemoMessage message)
+        public void PublishRead(string queueName, API.DemoMessage message)
         {
             var body = message.ToByteArray();
             
             var properties = _channel.CreateBasicProperties();
-            properties.Type = BrokerDemo.API.DemoMessage.Descriptor.Name;
+            properties.Type = API.DemoMessage.Descriptor.Name;
             
             _channel.BasicPublish(exchange: "",
                                   routingKey: queueName,
@@ -70,10 +69,10 @@ namespace Server.Broker
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += (o, e) =>
             {
-                if (!string.Equals(BrokerDemo.API.DemoMessage.Descriptor.Name, e.BasicProperties.Type,
-                    StringComparison.OrdinalIgnoreCase)) return;
+                if (!string.Equals(API.DemoMessage.Descriptor.Name, e.BasicProperties.Type, StringComparison.OrdinalIgnoreCase))
+                    return;
                 
-                var message = BrokerDemo.API.DemoMessage.Parser.ParseFrom(e.Body.ToArray());
+                var message = API.DemoMessage.Parser.ParseFrom(e.Body.ToArray());
                 WriteToDatabaseEvent?.Invoke(this, new WriteToDatabaseEventArgs(message));
             };
 
@@ -96,10 +95,10 @@ namespace Server.Broker
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += (o, e) =>
             {
-                if (!string.Equals(BrokerDemo.API.DemoMessage.Descriptor.Name, e.BasicProperties.Type,
-                    StringComparison.OrdinalIgnoreCase)) return;
+                if (!string.Equals(API.DemoMessage.Descriptor.Name, e.BasicProperties.Type, StringComparison.OrdinalIgnoreCase))
+                    return;
                 
-                var message = BrokerDemo.API.DemoMessage.Parser.ParseFrom(e.Body.ToArray());
+                var message = API.DemoMessage.Parser.ParseFrom(e.Body.ToArray());
                 ReadFromDatabaseEvent?.Invoke(this, new ReadFromDatabaseEventArgs(e.BasicProperties.ReplyTo, message));
             };
 
@@ -108,22 +107,24 @@ namespace Server.Broker
                                   consumer: consumer);
         }
     }
+    
     public class WriteToDatabaseEventArgs
     {
-        public WriteToDatabaseEventArgs(BrokerDemo.API.DemoMessage message)
+        public WriteToDatabaseEventArgs(API.DemoMessage message)
         {
             Message = message;
         }
-        public BrokerDemo.API.DemoMessage Message { get; }
+        public API.DemoMessage Message { get; }
     }
+    
     public class ReadFromDatabaseEventArgs
     {
-        public ReadFromDatabaseEventArgs(string replyQueue, BrokerDemo.API.DemoMessage message)
+        public ReadFromDatabaseEventArgs(string replyQueue, API.DemoMessage message)
         {
             ReplyQueue = replyQueue;
             Message = message;
         }
         public string ReplyQueue { get; }
-        public BrokerDemo.API.DemoMessage Message { get; }
+        public API.DemoMessage Message { get; }
     }
 }

@@ -1,13 +1,10 @@
-﻿using System;
-using BrokerDemo.API;
-
-namespace Server.Broker
+﻿namespace BrokerDemo.Server.Broker
 {
     public interface IBrokerConnection
     {
         void Open();
         void Close();
-        void PublishRead(string queueName, BrokerDemo.API.DemoMessage message);
+        void PublishRead(string queueName, API.DemoMessage message);
         void SubscribeWrite();
         void SubscribeRead();
     }

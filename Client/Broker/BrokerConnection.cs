@@ -2,9 +2,8 @@
 using  RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
-namespace Client.Broker
+namespace BrokerDemo.Client.Broker
 {
     public class BrokerConnection : IBrokerConnection
     {
@@ -28,31 +27,35 @@ namespace Client.Broker
                 VirtualHost = "/"
             };
         }
+        
         public void Open()
         {
             _connection = _connectionFactory.CreateConnection();
             _channel = _connection.CreateModel();
         }
+        
         public void Close()
         {
             _channel.Close();
             _connection.Close();
         }
-        public void Produce(BrokerDemo.API.DemoMessage message)
+        
+        public void Produce(API.DemoMessage message)
         {
             var body = message.ToByteArray();
             
             var properties = _channel.CreateBasicProperties();
-            properties.Type = BrokerDemo.API.DemoMessage.Descriptor.Name;
+            properties.Type = API.DemoMessage.Descriptor.Name;
 
             _channel.BasicPublish(exchange: "demo.write",
                                   routingKey: "single",
                                   basicProperties: properties,
                                   body: body);
         }
+        
         public void Request(int id)
         {
-            var body = new BrokerDemo.API.DemoMessage
+            var body = new API.DemoMessage
             {
                 Id = id
             }
@@ -60,13 +63,14 @@ namespace Client.Broker
 
             var properties = _channel.CreateBasicProperties();
             properties.ReplyTo = _queueName;
-            properties.Type = BrokerDemo.API.DemoMessage.Descriptor.Name;
+            properties.Type = API.DemoMessage.Descriptor.Name;
             
             _channel.BasicPublish(exchange: "demo.read",
                                   routingKey: "single",
                                   basicProperties: properties,
                                   body: body);
         }
+        
         public void Subscribe()
         {
             _queueName = _channel.QueueDeclare(queue: "",
@@ -83,22 +87,24 @@ namespace Client.Broker
                                   autoAck: true,
                                   consumer: consumer);
         }
+        
         private void OnMessageReceived(object o, BasicDeliverEventArgs e)
         {
             Console.WriteLine("Message received");
-            if (!string.Equals(BrokerDemo.API.DemoMessage.Descriptor.Name, e.BasicProperties.Type,
+            if (!string.Equals(API.DemoMessage.Descriptor.Name, e.BasicProperties.Type,
                 StringComparison.OrdinalIgnoreCase)) return;
             
-            var message = BrokerDemo.API.DemoMessage.Parser.ParseFrom(e.Body.ToArray());
+            var message = API.DemoMessage.Parser.ParseFrom(e.Body.ToArray());
             MessageReceivedEvent?.Invoke(this, new MessageReceivedEventArgs(message));
         }
     }
+    
     public class MessageReceivedEventArgs
     {
-        public MessageReceivedEventArgs(BrokerDemo.API.DemoMessage message)
+        public MessageReceivedEventArgs(API.DemoMessage message)
         {
             Message = message;
         }
-        public BrokerDemo.API.DemoMessage Message { get; }
+        public API.DemoMessage Message { get; }
     }
 }
