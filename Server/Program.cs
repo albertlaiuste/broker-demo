@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using BrokerDemo.Server.Broker;
 
 namespace BrokerDemo.Server
@@ -9,6 +11,8 @@ namespace BrokerDemo.Server
     {
         static void Main(string[] args)
         {
+            Console.SetOut(new PrefixedWriter());
+            
             var database = new List<API.DemoMessage>();
             
             var connection = new BrokerConnection();
@@ -45,7 +49,7 @@ namespace BrokerDemo.Server
                 }
                 connection.PublishRead(e.ReplyQueue, match);
                 Console.WriteLine("Match found, message written to queue: [{0}],\n" +
-                                  "    Id: [{1}], description: [{2}], updated: [{3}]", e.ReplyQueue, match.Id, match.Description, match.Updated);
+                                  "Id: [{1}], description: [{2}], updated: [{3}]", e.ReplyQueue, match.Id, match.Description, match.Updated);
 
             };
             
@@ -53,6 +57,30 @@ namespace BrokerDemo.Server
             
             connection.Close();
             Console.WriteLine("Disconnected");
+        }
+        
+        private class PrefixedWriter : TextWriter
+        {
+            private readonly TextWriter _originalOut;
+
+            public PrefixedWriter()
+            {
+                _originalOut = Console.Out;
+            }
+
+            public override Encoding Encoding => new System.Text.ASCIIEncoding();
+
+            public override void WriteLine(string message)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                _originalOut.Write("[Server] ");
+                Console.ResetColor();
+                _originalOut.WriteLine(message);
+            }
+            public override void Write(string message)
+            {
+                _originalOut.Write(message);
+            }
         }
     }
 }
