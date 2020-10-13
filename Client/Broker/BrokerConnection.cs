@@ -38,15 +38,9 @@ namespace Client.Broker
             _channel.Close();
             _connection.Close();
         }
-        public void Produce(int id, string description, DateTime timestamp)
+        public void Produce(BrokerDemo.API.DemoMessage message)
         {
-            var body = new BrokerDemo.API.DemoMessage
-            {
-                Id = id,
-                Description = description,
-                Updated = Timestamp.FromDateTime(timestamp.ToUniversalTime())
-            }
-            .ToByteArray();
+            var body = message.ToByteArray();
             
             var properties = _channel.CreateBasicProperties();
             properties.Type = BrokerDemo.API.DemoMessage.Descriptor.Name;

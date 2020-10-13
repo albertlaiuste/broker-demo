@@ -6,7 +6,7 @@ namespace Client.Broker
     {
         void Open();
         void Close();
-        void Produce(int id, string description, DateTime timestamp);
+        void Produce(BrokerDemo.API.DemoMessage message);
         void Request(int id);
         void Subscribe();
     }

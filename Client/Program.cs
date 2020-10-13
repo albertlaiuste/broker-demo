@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Client.Broker;
+using Google.Protobuf.WellKnownTypes;
 
 namespace Client
 {
@@ -15,15 +16,24 @@ namespace Client
             connection.Subscribe();
             Console.WriteLine("Subscribed to channel");
             // Produce couple of messages to queue
-            connection.Produce(10, "First message", DateTime.Now);
-            connection.Produce(20, "Second message", DateTime.Now);
-            connection.Produce(30, "Third message", DateTime.Now);
+            var msg1 = new BrokerDemo.API.DemoMessage
+            {
+                Id = 10,
+                Description = "First message",
+                Updated = Timestamp.FromDateTime(DateTime.Now.ToUniversalTime())
+            };
+            var msg2 = new BrokerDemo.API.DemoMessage
+            {
+                Id = 20,
+                Description = "Second message",
+                Updated = Timestamp.FromDateTime(DateTime.Now.ToUniversalTime())
+            };
+            connection.Produce(msg1);
+            connection.Produce(msg2);
             Console.WriteLine("Produced messages");
             // Ask for some message from queue
-            var received1 = await Requests.RequestMessage(connection, 20);
+            var received1 = await Requests.RequestMessage(connection, 10);
             Console.WriteLine("Received message: [{0}] [{1}], Updated: {2}", received1.Id, received1.Description, received1.Updated);
-            var received2 = await Requests.RequestMessage(connection, 30);
-            Console.WriteLine("Received message: [{0}] [{1}], Updated: {2}", received2.Id, received2.Description, received2.Updated);
             connection.Close();
             Console.WriteLine("Disconnected");
         }
